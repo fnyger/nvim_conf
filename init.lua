@@ -29,6 +29,8 @@
 vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 
+vim.o.fillchars = 'horiz:─,horizup:┴,horizdown:┬,vert:│,vertleft:┤,vertright:├,verthoriz:┼'
+
 -- Set to true if you have a Nerd Font installed and selected in the terminal
 vim.g.have_nerd_font = true
 
@@ -51,6 +53,17 @@ vim.o.showmode = false
 --  Schedule the setting after `UiEnter` because it can increase startup-time.
 --  Remove this option if you want your OS clipboard to remain independent.
 --  See `:help 'clipboard'`
+vim.g.clipboard = {
+  name = 'OSC 52',
+  copy = {
+    ['+'] = require('vim.ui.clipboard.osc52').copy '+',
+    ['*'] = require('vim.ui.clipboard.osc52').copy '*',
+  },
+  paste = {
+    ['+'] = require('vim.ui.clipboard.osc52').paste '+',
+    ['*'] = require('vim.ui.clipboard.osc52').paste '*',
+  },
+}
 vim.schedule(function() vim.o.clipboard = 'unnamedplus' end)
 
 -- Enable break indent
@@ -264,12 +277,25 @@ require('lazy').setup({
   -- lazy.nvim
   {
     'folke/snacks.nvim',
+    lazy = false,
+    keys = {
+      { '<leader>t', function() Snacks.terminal.toggle() end, desc = 'Toggle Terminal' },
+      { '<F4>', function() Snacks.terminal.toggle() end, desc = 'Toggle Terminal', mode = { 'n', 't' } },
+    },
     ---@type snacks.Config
     opts = {
       scroll = {
         enabled = true,
       },
       indent = { enabled = true },
+      terminal = {
+        win = {
+          position = 'float',
+        },
+        -- your terminal configuration comes here
+        -- or leave it empty to use the default settings
+        -- refer to the configuration section below
+      },
     },
   },
   { -- Fuzzy Finder (files, lsp, etc)
@@ -916,4 +942,6 @@ vim.keymap.set('n', '<leader>e', '<cmd>Neotree<CR>')
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
 vim.lsp.enable { 'luals', 'pyright' }
+-- Adds separator between horizontal splitz
+vim.o.laststatus = 3
 vim.cmd 'colorscheme onedark'
