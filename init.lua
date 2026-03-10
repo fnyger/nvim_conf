@@ -29,8 +29,6 @@
 vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 
-vim.o.fillchars = 'horiz:─,horizup:┴,horizdown:┬,vert:│,vertleft:┤,vertright:├,verthoriz:┼'
-
 -- Set to true if you have a Nerd Font installed and selected in the terminal
 vim.g.have_nerd_font = true
 
@@ -53,6 +51,16 @@ vim.o.showmode = false
 --  Schedule the setting after `UiEnter` because it can increase startup-time.
 --  Remove this option if you want your OS clipboard to remain independent.
 --  See `:help 'clipboard'`
+vim.schedule(function() vim.o.clipboard = 'unnamedplus' end)
+vim.o.clipboard = 'unnamedplus'
+
+local function paste()
+  return {
+    vim.fn.split(vim.fn.getreg '', '\n'),
+    vim.fn.getregtype '',
+  }
+end
+
 vim.g.clipboard = {
   name = 'OSC 52',
   copy = {
@@ -60,11 +68,10 @@ vim.g.clipboard = {
     ['*'] = require('vim.ui.clipboard.osc52').copy '*',
   },
   paste = {
-    ['+'] = require('vim.ui.clipboard.osc52').paste '+',
-    ['*'] = require('vim.ui.clipboard.osc52').paste '*',
+    ['+'] = paste,
+    ['*'] = paste,
   },
 }
-vim.schedule(function() vim.o.clipboard = 'unnamedplus' end)
 
 -- Enable break indent
 vim.o.breakindent = true
@@ -263,6 +270,7 @@ require('lazy').setup({
         { '<leader>s', group = '[S]earch', mode = { 'n', 'v' } },
         { '<leader>t', group = '[T]oggle' },
         { '<leader>h', group = 'Git [H]unk', mode = { 'n', 'v' } },
+        { '<leader>p', group = '[P]ersistance', mode = { 'n' } },
         { 'gr', group = 'LSP Actions', mode = { 'n' } },
       },
     },
@@ -355,6 +363,8 @@ require('lazy').setup({
       terminal = {
         win = {
           position = 'float',
+          border = 'rounded',
+          backdrop = false,
         },
         -- your terminal configuration comes here
         -- or leave it empty to use the default settings
@@ -756,6 +766,47 @@ require('lazy').setup({
     },
   },
   {
+    'folke/persistence.nvim',
+    event = 'BufReadPre', -- this will only start session saving when an actual file was opened
+    lazy = false,
+    keys = {
+      -- load the session for the current directory
+      { '<leader>ps', function() require('persistence').load() end, desc = 'load the session for the current directory' },
+
+      -- select a session to load
+      { '<leader>pS', function() require('persistence').select() end, desc = 'select a session to load' },
+
+      -- load the last session
+      { '<leader>pl', function() require('persistence').load { last = true } end, desc = 'load the last session' },
+
+      -- stop Persistence => session won't be saved on exit
+      { '<leader>pd', function() require('persistence').stop() end, desc = "stop Persistence => session won't be saved on exit" },
+    },
+    opts = {
+      -- add any custom options here
+    },
+    config = function(_, opts)
+      require('persistence').setup(opts)
+
+      -- Close windows that don't restore well before saving the session
+      vim.api.nvim_create_autocmd('User', {
+        pattern = 'PersistenceSavePre',
+        callback = function()
+          for _, win in ipairs(vim.api.nvim_list_wins()) do
+            local buf = vim.api.nvim_win_get_buf(win)
+            local bt = vim.bo[buf].buftype
+            if bt == 'terminal' or bt == 'help' or bt == 'nofile' then pcall(vim.api.nvim_win_close, win, true) end
+          end
+        end,
+      })
+
+      vim.api.nvim_create_autocmd('User', {
+        pattern = 'PersistenceLoadPost',
+        callback = function() vim.cmd 'Neotree reveal' end,
+      })
+    end,
+  },
+  {
     'mason-org/mason.nvim',
     ---@module 'mason.settings'
     ---@type MasonSettings
@@ -804,11 +855,14 @@ require('lazy').setup({
             }
           end,
         },
+        ruff_format = {
+          prepend_args = { 'format', '--line-length', '100' },
+        },
       },
       formatters_by_ft = {
         lua = { 'stylua' },
         -- Conform can also run multiple formatters sequentially
-        -- python = { "isort", "black" },
+        python = { 'ruff_fix', 'ruff_organize_imports', 'ruff_format' },
         --
         -- You can use 'stop_after_first' to run the first available formatter from the list
         -- javascript = { "prettierd", "prettier", stop_after_first = true },
@@ -871,7 +925,7 @@ require('lazy').setup({
         -- <c-k>: Toggle signature help
         --
         -- See :h blink-cmp-config-keymap for defining your own keymap
-        preset = 'default',
+        preset = 'super-tab',
 
         -- For more advanced Luasnip keymaps (e.g. selecting choice nodes, expansion) see:
         --    https://github.com/L3MON4D3/LuaSnip?tab=readme-ov-file#keymaps
