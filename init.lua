@@ -219,23 +219,6 @@ require('lazy').setup({
     priority = 1000, -- Ensure it loads first
   },
 
-  -- somewhere in your config:
-
-  -- Alternatively, use `config = function() ... end` for full control over the configuration.
-  -- If you prefer to call `setup` explicitly, use:
-  --    {
-  --        'lewis6991/gitsigns.nvim',
-  --        config = function()
-  --            require('gitsigns').setup({
-  --                -- Your gitsigns configuration here
-  --            })
-  --        end,
-  --    }
-  --
-  -- Here is a more advanced example where we pass configuration
-  -- options to `gitsigns.nvim`.
-  --
-  -- See `:help gitsigns` to understand what the configuration keys do
   { -- Adds git related signs to the gutter, as well as utilities for managing changes
     'lewis6991/gitsigns.nvim',
     ---@module 'gitsigns'
@@ -255,20 +238,6 @@ require('lazy').setup({
       },
     },
   },
-
-  -- NOTE: Plugins can also be configured to run Lua code when they are loaded.
-  --
-  -- This is often very useful to both group configuration, as well as handle
-  -- lazy loading plugins that don't need to be loaded immediately at startup.
-  --
-  -- For example, in the following configuration, we use:
-  --  event = 'VimEnter'
-  --
-  -- which loads which-key before all the UI elements are loaded. Events can be
-  -- normal autocommands events (`:help autocmd-events`).
-  --
-  -- Then, because we use the `opts` key (recommended), the configuration runs
-  -- after the plugin has been loaded as `require(MODULE).setup(opts)`.
 
   { -- Useful plugin to show you pending keybinds.
     'folke/which-key.nvim',
@@ -292,13 +261,6 @@ require('lazy').setup({
     },
   },
 
-  -- NOTE: Plugins can specify dependencies.
-  --
-  -- The dependencies are proper plugin specifications as well - anything
-  -- you do for a plugin at the top level, you can do for a dependency.
-  --
-  -- Use the `dependencies` key to specify the dependencies of a particular plugin
-  -- lazy.nvim
   {
     'folke/snacks.nvim',
     lazy = false,
@@ -817,7 +779,17 @@ require('lazy').setup({
 
       vim.api.nvim_create_autocmd('User', {
         pattern = 'PersistenceLoadPost',
-        callback = function() vim.cmd 'Neotree reveal' end,
+        -- callback = function() vim.cmd 'Neotree reveal' end,
+        callback = function()
+          local prev_win = vim.api.nvim_get_current_win()
+          Snacks.explorer {
+            on_show = function()
+              vim.schedule(function()
+                if vim.api.nvim_win_is_valid(prev_win) then vim.api.nvim_set_current_win(prev_win) end
+              end)
+            end,
+          }
+        end,
       })
     end,
   },
@@ -919,26 +891,6 @@ require('lazy').setup({
     ---@type blink.cmp.Config
     opts = {
       keymap = {
-        -- 'default' (recommended) for mappings similar to built-in completions
-        --   <c-y> to accept ([y]es) the completion.
-        --    This will auto-import if your LSP supports it.
-        --    This will expand snippets if the LSP sent a snippet.
-        -- 'super-tab' for tab to accept
-        -- 'enter' for enter to accept
-        -- 'none' for no mappings
-        --
-        -- For an understanding of why the 'default' preset is recommended,
-        -- you will need to read `:help ins-completion`
-        --
-        -- No, but seriously. Please read `:help ins-completion`, it is really good!
-        --
-        -- All presets have the following mappings:
-        -- <tab>/<s-tab>: move to right/left of your snippet expansion
-        -- <c-space>: Open menu or open docs if already open
-        -- <c-n>/<c-p> or <up>/<down>: Select next/previous item
-        -- <c-e>: Hide menu
-        -- <c-k>: Toggle signature help
-        --
         -- See :h blink-cmp-config-keymap for defining your own keymap
         preset = 'super-tab',
         ['<C-j>'] = { 'select_next', 'fallback' },
@@ -981,10 +933,6 @@ require('lazy').setup({
   },
 
   { -- You can easily change to a different colorscheme.
-    -- Change the name of the colorscheme plugin below, and then
-    -- change the command in the config to whatever the name of that colorscheme is.
-    --
-    -- If you want to see what colorschemes are already installed, you can use `:Telescope colorscheme`.
     'folke/tokyonight.nvim',
     priority = 1000, -- Make sure to load this before all the other start plugins.
     config = function()
@@ -995,14 +943,10 @@ require('lazy').setup({
         },
       }
 
-      -- Load the colorscheme here.
-      -- Like many other themes, this one has different styles, and you could load
-      -- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
       vim.cmd.colorscheme 'tokyonight-night'
     end,
   },
 
-  -- Highlight todo, notes, etc in comments
   {
     'folke/todo-comments.nvim',
     event = 'VimEnter',
@@ -1013,7 +957,7 @@ require('lazy').setup({
     opts = { signs = false },
   },
 
-  { -- Collection of various small independent plugins/modules
+  {
     'nvim-mini/mini.nvim',
     config = function()
       -- Better Around/Inside textobjects
@@ -1049,8 +993,6 @@ require('lazy').setup({
       require('mini.cursorword').setup()
 
       require('mini.move').setup()
-      vim.keymap.set('n', '<Tab>', function() MiniMove.move_line 'right' end, { desc = 'Indent line' })
-      vim.keymap.set('n', '<S-Tab>', function() MiniMove.move_line 'left' end, { desc = 'Unindent line' })
       vim.keymap.set('v', '<Tab>', function() MiniMove.move_selection 'right' end, { desc = 'Indent selection' })
       vim.keymap.set('v', '<S-Tab>', function() MiniMove.move_selection 'left' end, { desc = 'Unindent selection' })
 
@@ -1105,7 +1047,7 @@ require('lazy').setup({
           section_separators = { left = '', right = '' },
           disabled_filetypes = {
             statusline = { 'snacks_dashboard' },
-            winbar = { 'snacks_dashboard', 'neo-tree', 'sidekick_terminal' },
+            winbar = { 'snacks_dashboard', 'neo-tree', 'sidekick_terminal', 'snacks_picker_list', 'snacks_picker_input' },
           },
           ignore_focus = {},
           always_divide_middle = true,
@@ -1158,7 +1100,7 @@ require('lazy').setup({
         inactive_winbar = {
           lualine_a = {},
           lualine_b = {},
-          lualine_c = { { 'filename', path = 1 } },
+          lualine_c = { { 'filename', path = 1, cond = function() return vim.bo.buftype ~= 'nofile' end } },
           lualine_x = {},
           lualine_y = {},
           lualine_z = {},
@@ -1179,69 +1121,28 @@ require('lazy').setup({
       },
     },
     keys = {
-      {
-        '<tab>',
-        function()
-          -- if there is a next edit, jump to it, otherwise apply it if any
-          if not require('sidekick').nes_jump_or_apply() then
-            return '<Tab>' -- fallback to normal tab
-          end
-        end,
-        expr = true,
-        desc = 'Goto/Apply Next Edit Suggestion',
-      },
-      {
-        '<c-.>',
-        function() require('sidekick.cli').toggle() end,
-        desc = 'Sidekick Toggle',
-        mode = { 'n', 't', 'i', 'x' },
-      },
-      {
-        '<leader>aa',
-        function() require('sidekick.cli').toggle() end,
-        desc = 'Sidekick Toggle CLI',
-      },
-      {
-        '<leader>as',
-        function() require('sidekick.cli').select() end,
-        -- Or to select only installed tools:
-        -- require("sidekick.cli").select({ filter = { installed = true } })
-        desc = 'Select CLI',
-      },
-      {
-        '<leader>ad',
-        function() require('sidekick.cli').close() end,
-        desc = 'Detach a CLI Session',
-      },
-      {
-        '<leader>at',
-        function() require('sidekick.cli').send { msg = '{this}' } end,
-        mode = { 'x', 'n' },
-        desc = 'Send This',
-      },
-      {
-        '<leader>af',
-        function() require('sidekick.cli').send { msg = '{file}' } end,
-        desc = 'Send File',
-      },
-      {
-        '<leader>av',
-        function() require('sidekick.cli').send { msg = '{selection}' } end,
-        mode = { 'x' },
-        desc = 'Send Visual Selection',
-      },
-      {
-        '<leader>ap',
-        function() require('sidekick.cli').prompt() end,
-        mode = { 'n', 'x' },
-        desc = 'Sidekick Select Prompt',
-      },
+      -- if there is a next edit, jump to it, otherwise apply it if any
+      -- fallback to normal tab
+      -- {
+      --   '<tab>',
+      --   function()
+      --     if not require('sidekick').nes_jump_or_apply() then return '<Tab>' end
+      --   end,
+      --   expr = true,
+      --   desc = 'Goto/Apply Next Edit Suggestion',
+      -- },
+      { '<c-.>', function() require('sidekick.cli').toggle() end, desc = 'Sidekick Toggle', mode = { 'n', 't', 'i', 'x' } },
+      { '<leader>aa', function() require('sidekick.cli').toggle() end, desc = 'Sidekick Toggle CLI' },
+      -- Or to select only installed tools:
+      -- require("sidekick.cli").select({ filter = { installed = true } })
+      { '<leader>as', function() require('sidekick.cli').select() end, desc = 'Select CLI' },
+      { '<leader>ad', function() require('sidekick.cli').close() end, desc = 'Detach a CLI Session' },
+      { '<leader>at', function() require('sidekick.cli').send { msg = '{this}' } end, mode = { 'x', 'n' }, desc = 'Send This' },
+      { '<leader>af', function() require('sidekick.cli').send { msg = '{file}' } end, desc = 'Send File' },
+      { '<leader>av', function() require('sidekick.cli').send { msg = '{selection}' } end, mode = { 'x' }, desc = 'Send Visual Selection' },
+      { '<leader>ap', function() require('sidekick.cli').prompt() end, mode = { 'n', 'x' }, desc = 'Sidekick Select Prompt' },
       -- Example of a keybinding to open Claude directly
-      {
-        '<leader>ac',
-        function() require('sidekick.cli').toggle { name = 'claude', focus = true } end,
-        desc = 'Sidekick Toggle Claude',
-      },
+      { '<leader>ac', function() require('sidekick.cli').toggle { name = 'claude', focus = true } end, desc = 'Sidekick Toggle Claude' },
     },
   },
   {
@@ -1268,27 +1169,36 @@ require('lazy').setup({
       { 'ge', "<cmd>lua require('spider').motion('ge')<CR>", mode = { 'n', 'o', 'x' } },
     },
   },
+  -- {
+  --   'nvim-neo-tree/neo-tree.nvim',
+  --   version = '*',
+  --   dependencies = {
+  --     'nvim-lua/plenary.nvim',
+  --     'nvim-tree/nvim-web-devicons', -- not strictly required, but recommended
+  --     'MunifTanjim/nui.nvim',
+  --   },
+  --   lazy = false,
+  --   keys = {
+  --     { '\\', ':Neotree reveal<CR>', desc = 'NeoTree reveal', silent = true },
+  --     { '<leader>e', ':Neotree reveal<CR>', desc = 'NeoTree reveal', silent = true },
+  --   },
+  --   ---@module 'neo-tree'
+  --   ---@type neotree.Config
+  --   opts = {
+  --     filesystem = {
+  --       window = {
+  --         mappings = {
+  --           ['\\'] = 'close_window',
+  --           ['l'] = 'open',
+  --           ['h'] = 'close_node',
+  --         },
+  --       },
+  --     },
+  --   },
+  -- },
 
-  -- The following comments only work if you have downloaded the kickstart repo, not just copy pasted the
-  -- init.lua. If you want these files, they are in the repository, so you can just download them and
-  -- place them in the correct locations.
-
-  -- NOTE: Next step on your Neovim journey: Add/Configure additional plugins for Kickstart
-  --
-  --  Here are some example plugins that I've included in the Kickstart repository.
-  --  Uncomment any of the lines below to enable them (you will need to restart nvim).
-  --
-  require 'kickstart.plugins.neo-tree',
-  -- NOTE: The import below can automatically add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
-  --    This is the easiest way to modularize your config.
-  --
   --  Uncomment the following line and add your plugins to `lua/custom/plugins/*.lua` to get going.
   { import = 'custom.plugins' },
-  --
-  -- For additional information with loading, sourcing and examples see `:help lazy.nvim-🔌-plugin-spec`
-  -- Or use telescope!
-  -- In normal mode type `<space>sh` then write `lazy.nvim-plugin`
-  -- you can continue same window with `<space>sr` which resumes last telescope search
 }, { ---@diagnostic disable-line: missing-fields
   ui = {
     -- If you are using a Nerd Font: set icons to an empty table which will use the
@@ -1311,9 +1221,6 @@ require('lazy').setup({
   },
 })
 
-vim.keymap.set('n', '<leader>e', '<cmd>Neotree<CR>')
--- The line beneath this is called `modeline`. See `:help modeline`
--- vim: ts=2 sts=2 sw=2 et
 vim.lsp.enable { 'luals', 'pyright' }
 -- Adds separator between horizontal splitz
 vim.o.laststatus = 3
