@@ -128,6 +128,18 @@ vim.o.confirm = true
 --  See `:help hlsearch`
 vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
 
+-- Search word under cursor without jumping on first press
+vim.keymap.set('n', '*', function()
+  local word = vim.fn.expand '<cword>'
+  local pattern = '\\<' .. word .. '\\>'
+  if vim.fn.getreg '/' == pattern then
+    vim.cmd 'normal! n'
+  else
+    vim.fn.setreg('/', pattern)
+    vim.o.hlsearch = true
+  end
+end, { desc = 'Search word under cursor' })
+
 -- Diagnostic Config & Keymaps
 -- See :help vim.diagnostic.Opts
 vim.diagnostic.config {
@@ -229,6 +241,10 @@ require('lazy').setup({
     ---@module 'gitsigns'
     ---@type Gitsigns.Config
     ---@diagnostic disable-next-line: missing-fields
+    keys = {
+
+      { '<leader>gd', '<cmd>Gitsigns preview_hunk_inline<cr>', desc = 'Preview hunk' },
+    },
     opts = {
       signs = {
         add = { text = '+' }, ---@diagnostic disable-line: missing-fields
@@ -310,7 +326,6 @@ require('lazy').setup({
       { '<leader>gL', function() Snacks.picker.git_log_line() end, desc = 'Git Log Line' },
       { '<leader>gs', function() Snacks.picker.git_status() end, desc = 'Git Status' },
       { '<leader>gS', function() Snacks.picker.git_stash() end, desc = 'Git Stash' },
-      { '<leader>gd', function() Snacks.picker.git_diff() end, desc = 'Git Diff (Hunks)' },
       { '<leader>gf', function() Snacks.picker.git_log_file() end, desc = 'Git Log File' },
       -- gh
       { '<leader>gi', function() Snacks.picker.gh_issue() end, desc = 'GitHub Issues (open)' },
@@ -347,7 +362,6 @@ require('lazy').setup({
       -- LSP
       { 'gd', function() Snacks.picker.lsp_definitions() end, desc = 'Goto Definition' },
       { 'gD', function() Snacks.picker.lsp_declarations() end, desc = 'Goto Declaration' },
-      { 'gr', function() Snacks.picker.lsp_references() end, nowait = true, desc = 'References' },
       { 'gI', function() Snacks.picker.lsp_implementations() end, desc = 'Goto Implementation' },
       { 'gy', function() Snacks.picker.lsp_type_definitions() end, desc = 'Goto T[y]pe Definition' },
       { 'gai', function() Snacks.picker.lsp_incoming_calls() end, desc = 'C[a]lls Incoming' },
@@ -927,6 +941,8 @@ require('lazy').setup({
         --
         -- See :h blink-cmp-config-keymap for defining your own keymap
         preset = 'super-tab',
+        ['<C-j>'] = { 'select_next', 'fallback' },
+        ['<C-k>'] = { 'select_prev', 'fallback' },
 
         -- For more advanced Luasnip keymaps (e.g. selecting choice nodes, expansion) see:
         --    https://github.com/L3MON4D3/LuaSnip?tab=readme-ov-file#keymaps
@@ -1030,6 +1046,18 @@ require('lazy').setup({
 
       -- ... and there is more!
       --  Check out: https://github.com/nvim-mini/mini.nvim
+      require('mini.cursorword').setup()
+
+      require('mini.move').setup()
+      vim.keymap.set('n', '<Tab>', function() MiniMove.move_line 'right' end, { desc = 'Indent line' })
+      vim.keymap.set('n', '<S-Tab>', function() MiniMove.move_line 'left' end, { desc = 'Unindent line' })
+      vim.keymap.set('v', '<Tab>', function() MiniMove.move_selection 'right' end, { desc = 'Indent selection' })
+      vim.keymap.set('v', '<S-Tab>', function() MiniMove.move_selection 'left' end, { desc = 'Unindent selection' })
+
+      require('mini.splitjoin').setup()
+
+      require('mini.icons').setup()
+      require('mini.pairs').setup()
     end,
   },
 
@@ -1040,7 +1068,7 @@ require('lazy').setup({
     branch = 'main',
     -- [[ Configure Treesitter ]] See `:help nvim-treesitter-intro`
     config = function()
-      local parsers = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc' }
+      local parsers = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc', 'python' }
       require('nvim-treesitter').install(parsers)
       vim.api.nvim_create_autocmd('FileType', {
         callback = function(args)
@@ -1065,6 +1093,171 @@ require('lazy').setup({
       })
     end,
   },
+  {
+    'nvim-lualine/lualine.nvim',
+    dependencies = { 'nvim-tree/nvim-web-devicons' },
+    config = function()
+      require('lualine').setup {
+        options = {
+          icons_enabled = true,
+          theme = 'auto',
+          component_separators = { left = '', right = '' },
+          section_separators = { left = '', right = '' },
+          disabled_filetypes = {
+            statusline = { 'snacks_dashboard' },
+            winbar = { 'snacks_dashboard', 'neo-tree', 'sidekick_terminal' },
+          },
+          ignore_focus = {},
+          always_divide_middle = true,
+          always_show_tabline = true,
+          globalstatus = true,
+          refresh = {
+            statusline = 1000,
+            tabline = 1000,
+            winbar = 1000,
+            refresh_time = 16, -- ~60fps
+            events = {
+              'WinEnter',
+              'BufEnter',
+              'BufWritePost',
+              'SessionLoadPost',
+              'FileChangedShellPost',
+              'VimResized',
+              'Filetype',
+              'CursorMoved',
+              'CursorMovedI',
+              'ModeChanged',
+            },
+          },
+        },
+        sections = {
+          lualine_a = { 'mode' },
+          lualine_b = { 'branch', 'diff', 'diagnostics' },
+          lualine_c = { 'filename' },
+          lualine_x = { 'encoding', 'fileformat', 'filetype' },
+          lualine_y = { 'progress' },
+          lualine_z = { 'location' },
+        },
+        inactive_sections = {
+          lualine_a = {},
+          lualine_b = {},
+          lualine_c = { 'filename' },
+          lualine_x = { 'location' },
+          lualine_y = {},
+          lualine_z = {},
+        },
+        tabline = {},
+        winbar = {
+          lualine_a = {},
+          lualine_b = {},
+          lualine_c = { { 'filename', path = 1 } },
+          lualine_x = {},
+          lualine_y = {},
+          lualine_z = {},
+        },
+        inactive_winbar = {
+          lualine_a = {},
+          lualine_b = {},
+          lualine_c = { { 'filename', path = 1 } },
+          lualine_x = {},
+          lualine_y = {},
+          lualine_z = {},
+        },
+        extensions = {},
+      }
+    end,
+  },
+  {
+    'folke/sidekick.nvim',
+    opts = {
+      -- add any options here
+      cli = {
+        mux = {
+          backend = 'tmux',
+          enabled = true,
+        },
+      },
+    },
+    keys = {
+      {
+        '<tab>',
+        function()
+          -- if there is a next edit, jump to it, otherwise apply it if any
+          if not require('sidekick').nes_jump_or_apply() then
+            return '<Tab>' -- fallback to normal tab
+          end
+        end,
+        expr = true,
+        desc = 'Goto/Apply Next Edit Suggestion',
+      },
+      {
+        '<c-.>',
+        function() require('sidekick.cli').toggle() end,
+        desc = 'Sidekick Toggle',
+        mode = { 'n', 't', 'i', 'x' },
+      },
+      {
+        '<leader>aa',
+        function() require('sidekick.cli').toggle() end,
+        desc = 'Sidekick Toggle CLI',
+      },
+      {
+        '<leader>as',
+        function() require('sidekick.cli').select() end,
+        -- Or to select only installed tools:
+        -- require("sidekick.cli").select({ filter = { installed = true } })
+        desc = 'Select CLI',
+      },
+      {
+        '<leader>ad',
+        function() require('sidekick.cli').close() end,
+        desc = 'Detach a CLI Session',
+      },
+      {
+        '<leader>at',
+        function() require('sidekick.cli').send { msg = '{this}' } end,
+        mode = { 'x', 'n' },
+        desc = 'Send This',
+      },
+      {
+        '<leader>af',
+        function() require('sidekick.cli').send { msg = '{file}' } end,
+        desc = 'Send File',
+      },
+      {
+        '<leader>av',
+        function() require('sidekick.cli').send { msg = '{selection}' } end,
+        mode = { 'x' },
+        desc = 'Send Visual Selection',
+      },
+      {
+        '<leader>ap',
+        function() require('sidekick.cli').prompt() end,
+        mode = { 'n', 'x' },
+        desc = 'Sidekick Select Prompt',
+      },
+      -- Example of a keybinding to open Claude directly
+      {
+        '<leader>ac',
+        function() require('sidekick.cli').toggle { name = 'claude', focus = true } end,
+        desc = 'Sidekick Toggle Claude',
+      },
+    },
+  },
+  {
+    'MeanderingProgrammer/render-markdown.nvim',
+    dependencies = { 'nvim-treesitter/nvim-treesitter', 'nvim-mini/mini.nvim' }, -- if you use the mini.nvim suite
+    -- dependencies = { 'nvim-treesitter/nvim-treesitter', 'nvim-mini/mini.icons' },        -- if you use standalone mini plugins
+    -- dependencies = { 'nvim-treesitter/nvim-treesitter', 'nvim-tree/nvim-web-devicons' }, -- if you prefer nvim-web-devicons
+    ---@module 'render-markdown'
+    ---@type render.md.UserConfig
+    opts = {
+      anti_conceal = {
+        -- This enables hiding added text on the line the cursor is on.
+        enabled = false,
+      },
+    },
+  },
 
   -- The following comments only work if you have downloaded the kickstart repo, not just copy pasted the
   -- init.lua. If you want these files, they are in the repository, so you can just download them and
@@ -1075,12 +1268,7 @@ require('lazy').setup({
   --  Here are some example plugins that I've included in the Kickstart repository.
   --  Uncomment any of the lines below to enable them (you will need to restart nvim).
   --
-  -- require 'kickstart.plugins.debug',
-  -- require 'kickstart.plugins.indent_line',
-  -- require 'kickstart.plugins.lint',
-  -- require 'kickstart.plugins.autopairs',
   require 'kickstart.plugins.neo-tree',
-  -- require 'kickstart.plugins.gitsigns', -- adds gitsigns recommend keymaps
   -- NOTE: The import below can automatically add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
   --    This is the easiest way to modularize your config.
   --
@@ -1095,21 +1283,21 @@ require('lazy').setup({
   ui = {
     -- If you are using a Nerd Font: set icons to an empty table which will use the
     -- default lazy.nvim defined Nerd Font icons, otherwise define a unicode icons table
-    icons = vim.g.have_nerd_font and {} or {
-      cmd = '⌘',
-      config = '🛠',
-      event = '📅',
-      ft = '📂',
-      init = '⚙',
-      keys = '🗝',
-      plugin = '🔌',
-      runtime = '💻',
-      require = '🌙',
-      source = '📄',
-      start = '🚀',
-      task = '📌',
-      lazy = '💤 ',
-    },
+    -- icons = vim.g.have_nerd_font and {} or {
+    --   cmd = '⌘',
+    --   config = '🛠',
+    --   event = '📅',
+    --   ft = '📂',
+    --   init = '⚙',
+    --   keys = '🗝',
+    --   plugin = '🔌',
+    --   runtime = '💻',
+    --   require = '🌙',
+    --   source = '📄',
+    --   start = '🚀',
+    --   task = '📌',
+    --   lazy = '💤 ',
+    -- },
   },
 })
 
