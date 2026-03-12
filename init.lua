@@ -329,6 +329,7 @@ require('lazy').setup({
       { 'gai', function() Snacks.picker.lsp_incoming_calls() end, desc = 'C[a]lls Incoming' },
       { 'gao', function() Snacks.picker.lsp_outgoing_calls() end, desc = 'C[a]lls Outgoing' },
       { '<leader>ss', function() Snacks.picker.lsp_symbols() end, desc = 'LSP Symbols' },
+      { '<C-S-o>', function() Snacks.picker.lsp_symbols() end, desc = 'LSP Symbols' },
       { '<leader>sS', function() Snacks.picker.lsp_workspace_symbols() end, desc = 'LSP Workspace Symbols' },
     },
     ---@type snacks.Config
@@ -1168,6 +1169,9 @@ require('lazy').setup({
       { 'b', "<cmd>lua require('spider').motion('b')<CR>", mode = { 'n', 'o', 'x' } },
       { 'ge', "<cmd>lua require('spider').motion('ge')<CR>", mode = { 'n', 'o', 'x' } },
     },
+    opts = {
+      skipInsignificantPunctuation = false,
+    },
   },
   -- {
   --   'nvim-neo-tree/neo-tree.nvim',
@@ -1197,6 +1201,68 @@ require('lazy').setup({
   --   },
   -- },
 
+  {
+    'jake-stewart/multicursor.nvim',
+    branch = '1.0',
+
+    config = function()
+      local mc = require 'multicursor-nvim'
+      mc.setup()
+
+      local set = vim.keymap.set
+
+      -- Add or skip cursor above/below the main cursor.
+      set({ 'n', 'x' }, '<c-up>', function() mc.lineAddCursor(-1) end)
+      set({ 'n', 'x' }, '<c-down>', function() mc.lineAddCursor(1) end)
+      -- set({ 'n', 'x' }, '<leader><up>', function() mc.lineSkipCursor(-1) end)
+      -- set({ 'n', 'x' }, '<leader><down>', function() mc.lineSkipCursor(1) end)
+
+      -- Add or skip adding a new cursor by matching word/selection
+      set({ 'n', 'x' }, 'gb', function() mc.matchAddCursor(1) end, { desc = 'Add cursor on next match' })
+      -- set({ 'n', 'x' }, '<leader>s', function() mc.matchSkipCursor(1) end)
+      set({ 'n', 'x' }, 'gB', function() mc.matchAddCursor(-1) end, { desc = 'Add cursor on prev match' })
+      -- set({ 'n', 'x' }, '<leader>S', function() mc.matchSkipCursor(-1) end)
+
+      -- Add and remove cursors with control + left click.
+      set('n', '<c-leftmouse>', mc.handleMouse)
+      set('n', '<c-leftdrag>', mc.handleMouseDrag)
+      set('n', '<c-leftrelease>', mc.handleMouseRelease)
+
+      -- Disable and enable cursors.
+      -- set({ 'n', 'x' }, '<c-q>', mc.toggleCursor)
+
+      -- Mappings defined in a keymap layer only apply when there are
+      -- multiple cursors. This lets you have overlapping mappings.
+      mc.addKeymapLayer(function(layerSet)
+        -- Select a different cursor as the main one.
+        layerSet({ 'n', 'x' }, '<left>', mc.prevCursor)
+        layerSet({ 'n', 'x' }, '<right>', mc.nextCursor)
+
+        -- Delete the main cursor.
+        layerSet({ 'n', 'x' }, '<leader>x', mc.deleteCursor)
+
+        -- Enable and clear cursors using escape.
+        layerSet('n', '<esc>', function()
+          if not mc.cursorsEnabled() then
+            mc.enableCursors()
+          else
+            mc.clearCursors()
+          end
+        end)
+      end)
+
+      -- Customize how cursors look.
+      local hl = vim.api.nvim_set_hl
+      hl(0, 'MultiCursorCursor', { reverse = true })
+      hl(0, 'MultiCursorVisual', { link = 'Visual' })
+      hl(0, 'MultiCursorSign', { link = 'SignColumn' })
+      hl(0, 'MultiCursorMatchPreview', { link = 'Search' })
+      hl(0, 'MultiCursorDisabledCursor', { reverse = true })
+      hl(0, 'MultiCursorDisabledVisual', { link = 'Visual' })
+      hl(0, 'MultiCursorDisabledSign', { link = 'SignColumn' })
+    end,
+  },
+  --  New plugins go here
   --  Uncomment the following line and add your plugins to `lua/custom/plugins/*.lua` to get going.
   { import = 'custom.plugins' },
 }, { ---@diagnostic disable-line: missing-fields
