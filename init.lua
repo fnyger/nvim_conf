@@ -51,8 +51,8 @@ vim.o.showmode = false
 --  Schedule the setting after `UiEnter` because it can increase startup-time.
 --  Remove this option if you want your OS clipboard to remain independent.
 --  See `:help 'clipboard'`
-vim.schedule(function() vim.o.clipboard = 'unnamedplus' end)
-vim.o.clipboard = 'unnamedplus'
+-- vim.schedule(function() vim.o.clipboard = 'unnamedplus' end)
+-- vim.o.clipboard = 'unnamedplus'
 
 local function paste()
   return {
@@ -300,6 +300,7 @@ require('lazy').setup({
       { '<leader>fb', function() Snacks.picker.buffers() end, desc = 'Buffers' },
       { '<leader>fc', function() Snacks.picker.files { cwd = vim.fn.stdpath 'config' } end, desc = 'Find Config File' },
       { '<leader>ff', function() Snacks.picker.files() end, desc = 'Find Files' },
+      { '<c-p>', function() Snacks.picker.files() end, desc = 'Find Files' },
       { '<leader>fg', function() Snacks.picker.git_files() end, desc = 'Find Git Files' },
       { '<leader>fp', function() Snacks.picker.projects() end, desc = 'Projects' },
       { '<leader>fr', function() Snacks.picker.recent() end, desc = 'Recent' },
