@@ -221,6 +221,7 @@ require('lazy').setup({
 
   { -- Adds git related signs to the gutter, as well as utilities for managing changes
     'lewis6991/gitsigns.nvim',
+    lazy = false,
     ---@module 'gitsigns'
     ---@type Gitsigns.Config
     ---@diagnostic disable-next-line: missing-fields
@@ -230,7 +231,7 @@ require('lazy').setup({
       { '<leader>gB', '<cmd>Gitsigns blame<cr>', desc = 'Blame' },
     },
     opts = {
-      current_line_blame=true,
+      current_line_blame = true,
       signs = {
         add = { text = '+' }, ---@diagnostic disable-line: missing-fields
         change = { text = '~' }, ---@diagnostic disable-line: missing-fields
