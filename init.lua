@@ -227,8 +227,10 @@ require('lazy').setup({
     keys = {
 
       { '<leader>gd', '<cmd>Gitsigns preview_hunk_inline<cr>', desc = 'Preview hunk' },
+      { '<leader>gB', '<cmd>Gitsigns blame<cr>', desc = 'Blame' },
     },
     opts = {
+      current_line_blame=true,
       signs = {
         add = { text = '+' }, ---@diagnostic disable-line: missing-fields
         change = { text = '~' }, ---@diagnostic disable-line: missing-fields
