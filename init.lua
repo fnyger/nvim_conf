@@ -352,7 +352,11 @@ require('lazy').setup({
       },
       picker = {
         prompt = ' ',
-        sources = {},
+        sources = {
+          explorer = {
+            layout = { preset = 'sidebar', preview = 'main' },
+          },
+        },
         focus = 'input',
         show_delay = 5000,
         limit_live = 10000,
