@@ -327,6 +327,7 @@ require('lazy').setup({
       -- LSP
       { 'gd', function() Snacks.picker.lsp_definitions() end, desc = 'Goto Definition' },
       { 'gD', function() Snacks.picker.lsp_declarations() end, desc = 'Goto Declaration' },
+      { 'gr', function() Snacks.picker.lsp_references() end, nowait = true, desc = 'References' },
       { 'gI', function() Snacks.picker.lsp_implementations() end, desc = 'Goto Implementation' },
       { 'gy', function() Snacks.picker.lsp_type_definitions() end, desc = 'Goto T[y]pe Definition' },
       { 'gai', function() Snacks.picker.lsp_incoming_calls() end, desc = 'C[a]lls Incoming' },
@@ -577,99 +578,6 @@ require('lazy').setup({
               ['i'] = 'focus_input',
               ['<a-w>'] = 'cycle_win',
             },
-          },
-        },
-        ---@class snacks.picker.icons
-        icons = {
-          files = {
-            enabled = true, -- show file icons
-            dir = '󰉋 ',
-            dir_open = '󰝰 ',
-            file = '󰈔 ',
-          },
-          keymaps = {
-            nowait = '󰓅 ',
-          },
-          tree = {
-            vertical = '│ ',
-            middle = '├╴',
-            last = '└╴',
-          },
-          undo = {
-            saved = ' ',
-          },
-          ui = {
-            live = '󰐰 ',
-            hidden = 'h',
-            ignored = 'i',
-            follow = 'f',
-            selected = '● ',
-            unselected = '○ ',
-            -- selected = " ",
-          },
-          git = {
-            enabled = true, -- show git icons
-            commit = '󰜘 ', -- used by git log
-            staged = '●', -- staged changes. always overrides the type icons
-            added = '',
-            deleted = '',
-            ignored = ' ',
-            modified = '○',
-            renamed = '',
-            unmerged = ' ',
-            untracked = '?',
-          },
-          diagnostics = {
-            Error = ' ',
-            Warn = ' ',
-            Hint = ' ',
-            Info = ' ',
-          },
-          lsp = {
-            unavailable = '',
-            enabled = ' ',
-            disabled = ' ',
-            attached = '󰖩 ',
-          },
-          kinds = {
-            Array = ' ',
-            Boolean = '󰨙 ',
-            Class = ' ',
-            Color = ' ',
-            Control = ' ',
-            Collapsed = ' ',
-            Constant = '󰏿 ',
-            Constructor = ' ',
-            Copilot = ' ',
-            Enum = ' ',
-            EnumMember = ' ',
-            Event = ' ',
-            Field = ' ',
-            File = ' ',
-            Folder = ' ',
-            Function = '󰊕 ',
-            Interface = ' ',
-            Key = ' ',
-            Keyword = ' ',
-            Method = '󰊕 ',
-            Module = ' ',
-            Namespace = '󰦮 ',
-            Null = ' ',
-            Number = '󰎠 ',
-            Object = ' ',
-            Operator = ' ',
-            Package = ' ',
-            Property = ' ',
-            Reference = ' ',
-            Snippet = '󱄽 ',
-            String = ' ',
-            Struct = '󰆼 ',
-            Text = ' ',
-            TypeParameter = ' ',
-            Unit = ' ',
-            Unknown = ' ',
-            Value = ' ',
-            Variable = '󰀫 ',
           },
         },
         ---@class snacks.picker.db.Config
@@ -982,19 +890,6 @@ require('lazy').setup({
       -- - sr)'  - [S]urround [R]eplace [)] [']
       require('mini.surround').setup()
 
-      -- Simple and easy statusline.
-      --  You could remove this setup call if you don't like it,
-      --  and try some other statusline plugin
-      local statusline = require 'mini.statusline'
-      -- set use_icons to true if you have a Nerd Font
-      statusline.setup { use_icons = vim.g.have_nerd_font }
-
-      -- You can configure sections in the statusline by overriding their
-      -- default behavior. For example, here we set the section for
-      -- cursor location to LINE:COLUMN
-      ---@diagnostic disable-next-line: duplicate-set-field
-      statusline.section_location = function() return '%2l:%-2v' end
-
       -- ... and there is more!
       --  Check out: https://github.com/nvim-mini/mini.nvim
       require('mini.cursorword').setup()
@@ -1005,7 +900,7 @@ require('lazy').setup({
 
       require('mini.splitjoin').setup()
 
-      require('mini.icons').setup()
+      -- require('mini.icons').setup()
       require('mini.pairs').setup()
     end,
   },
