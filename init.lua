@@ -1188,7 +1188,7 @@ require('lazy').setup({
   },
 })
 
-vim.lsp.enable { 'luals', 'pyright' }
+vim.lsp.enable { 'luals', 'pyright', 'kotlin', 'ts_ls' }
 -- Adds separator between horizontal splitz
 vim.o.laststatus = 3
 vim.cmd 'colorscheme onedark'
