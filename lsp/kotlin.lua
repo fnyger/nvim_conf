@@ -7,13 +7,13 @@
 
 ---@type vim.lsp.Config
 return {
-    cmd = { 'kotlin-language-server' },
-    filetypes = { 'kotlin' },
-    root_markers = {
-        'settings.gradle.kts',
-        'settings.gradle',
-        'build.gradle.kts',
-        'build.gradle',
-        '.git',
-    },
+  cmd = { 'intellij-server', '--stdio' },
+  filetypes = { 'kotlin' },
+  root_markers = {
+      'settings.gradle.kts',
+      'settings.gradle',
+      'build.gradle.kts',
+      'build.gradle',
+      '.git',
+  },
 }
