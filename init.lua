@@ -741,7 +741,8 @@ require('lazy').setup({
           return nil
         else
           return {
-            timeout_ms = 500,
+            -- ktlint is a JVM tool: ~1s startup, so it needs more than 500ms.
+            timeout_ms = vim.bo[bufnr].filetype == 'kotlin' and 5000 or 500,
             lsp_format = 'fallback',
           }
         end
@@ -767,7 +768,15 @@ require('lazy').setup({
         python = { 'ruff_fix', 'ruff_organize_imports', 'ruff_format' },
         --
         -- You can use 'stop_after_first' to run the first available formatter from the list
-        -- javascript = { "prettierd", "prettier", stop_after_first = true },
+        -- Uses the project's own prettier (node_modules/.bin) and its .prettierrc.
+        javascript = { 'prettier' },
+        javascriptreact = { 'prettier' },
+        typescript = { 'prettier' },
+        typescriptreact = { 'prettier' },
+        css = { 'prettier' },
+        json = { 'prettier' },
+        -- Same tool as the backend's `./gradlew ktlintCheck` (pinned to 1.8.0 in build.gradle.kts).
+        kotlin = { 'ktlint' },
       },
     },
   },
