@@ -357,6 +357,9 @@ require('lazy').setup({
           explorer = {
             layout = { preset = 'sidebar', preview = 'main' },
           },
+          files = {
+            hidden = true, -- show dotfiles (gitignored files stay hidden; toggle with <a-i>)
+          },
         },
         focus = 'input',
         show_delay = 5000,
